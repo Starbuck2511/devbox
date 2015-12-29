@@ -1,0 +1,30 @@
+- name: install apache2 packages
+  action: apt pkg={{item}} state=latest force=yes
+  with_items:
+    - apache2-mpm-worker
+    - libapache2-mod-fastcgi
+
+- name: install php packages
+  action: apt pkg={{item}} state=latest
+  with_items:
+    - php5-fpm
+    - php5
+
+- name: enable apache2 modules
+  command: a2enmod actions fastcgi alias rewrite proxy_fcgi
+
+# copy all files needed for php5 to according dirs
+- name: copy configs
+  action: copy src=../files{{item.path}} dest={{item.dest}} mode={{item.mode}}
+  with_items:
+    - { path: '/default.conf', dest: '/etc/apache2/sites-available/000-default.conf', mode: 644 }
+    - { path: '/php5-fpm.conf', dest: '/etc/apache2/conf-enabled/php5-fpm.conf', mode: 644 }
+
+- name: restart apache2
+  command: /etc/init.d/apache2 restart
+
+- name: start apache2 server
+  service: name=apache2 state=started enabled=true
+
+- name: start php-fpm
+  service: name=php5-fpm state=started enabled=true

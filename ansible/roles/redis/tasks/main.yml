@@ -1,0 +1,6 @@
+- name: install/update packages
+  action: apt pkg={{item}} state=latest
+  with_items:
+    - redis-server
+    - redis-tools
+    - php5-redis

@@ -1,0 +1,60 @@
+- name: copy files
+  copy: src=../files/{{item.path}} dest={{item.dest}} mode={{item.mode}} owner={{item.owner}} group={{item.group}}
+  with_items:
+    - { path: '.bashrc', dest: '/root/.bashrc', owner: root, group: root, mode: 600 }
+    - { path: '.bashrc', dest: '/home/vagrant/.bashrc', owner: vagrant, group: vagrant, mode: 600 }
+    - { path: 'hosts', dest: '/etc/hosts', owner: root, group: root, mode: 644 }
+    - { path: 'motd', dest: '/etc/motd', owner: root, group: root, mode: 644 }
+    - { path: 'motd', dest: '/etc/motd.tail', owner: root, group: root, mode: 644 }
+
+- name: add universe/multiverse
+  apt_repository: repo='deb http://ubuntu.mirror.lrz.de/ubuntu trusty main restricted universe multiverse' state=present
+
+- name: add update universe/multiverse
+  apt_repository: repo='deb http://ubuntu.mirror.lrz.de/ubuntu trusty-updates main restricted universe multiverse' state=present
+
+- name: add security universe/multiverse
+  apt_repository: repo='deb http://ubuntu.mirror.lrz.de/ubuntu trusty-security main restricted universe multiverse' state=present
+
+# Update the repo, because most boxes are heavily outdated
+- name: Update repository
+  action: command /usr/bin/apt-get update
+
+- name: Upgrade repository
+  action: command apt-get -y dist-upgrade
+
+- name: Cleanup
+  action: command apt-get autoclean
+
+- name: Remove old packages
+  action: command apt-get -y autoremove
+
+- name: install syspackages
+  action: apt pkg={{item}} state=latest
+  with_items:
+    - molly-guard
+    - logrotate
+    - vim
+    - curl
+    - git
+    - strace
+    - sysstat
+    - sshfs
+    - build-essential
+    - wget
+    - bash-completion
+    - ntp
+    - ntpdate
+    - unzip
+    - bzip2
+    - zip
+    - samba
+    - samba-common
+    - smbclient
+    - sendmail
+    - sendmail-bin
+    - python
+    - python-pip
+    - python-dev
+    - python-software-properties
+    - python-mysqldb

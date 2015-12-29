@@ -1,0 +1,17 @@
+- name: add universe/multiverse
+  apt_repository: repo='deb http://ubuntu.mirror.lrz.de/ubuntu precise main universe multiverse' state=present
+
+- name: add update universe/multiverse
+  apt_repository: repo='deb http://ubuntu.mirror.lrz.de/ubuntu precise-updates main universe multiverse' state=present
+
+- name: add security universe/multiverse
+  apt_repository: repo='deb http://ubuntu.mirror.lrz.de/ubuntu precise-security main universe multiverse' state=present
+
+- name: Update repository
+  action: command /usr/bin/apt-get update
+
+- name: install pip
+  action: command apt-get install python3-pip
+
+- name: install ansible with pip
+  action: command /usr/bin/pip install ansible

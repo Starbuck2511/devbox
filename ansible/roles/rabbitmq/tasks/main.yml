@@ -1,0 +1,9 @@
+- name: install rabbitmq
+  action: apt pkg={{item}} state=latest
+  with_items:
+    - rabbitmq-server
+
+#- name: copy scripts
+#  action: copy src=../files/{{ item.path }} dest=/usr/bin/{{ item.dest }} mode={{item.mode}}
+#  with_items:
+#    - { path: 'base-config', dest: 'base-config', mode: 655 }

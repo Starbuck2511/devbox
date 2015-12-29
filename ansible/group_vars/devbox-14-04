@@ -1,0 +1,9 @@
+user_home_base: /home
+user: wwwdev
+
+nginx_domain: dev.local
+nginx_home: /home/wwwdev
+nginx_user: wwwdev
+nginx_group: wwwdev
+nginx_fcgi: 9000
+nginx_pool: default

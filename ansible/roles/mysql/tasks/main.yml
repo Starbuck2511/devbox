@@ -1,0 +1,13 @@
+- name: install mysql packages
+  action: apt pkg={{item}} state=latest
+  with_items:
+    - mysql-server
+    - mysql-client
+    - mysql-common
+
+- name: start server
+  service: name=mysql state=started enabled=true
+
+- name: configure the root credentials
+  action: command mysqladmin -u root password vagrant
+  ignore_errors: yes

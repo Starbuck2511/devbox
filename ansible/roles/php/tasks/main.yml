@@ -1,0 +1,86 @@
+- name: install common
+  action: apt pkg={{item}} state=latest
+  with_items:
+    - php5-fpm
+    - php5-common
+    - php5-cli
+
+- name: remove apc cache if present
+  action: apt pkg=php-apc state=absent
+
+- name: remove apc config if present
+  action: file path="/etc/php5/fpm/conf.d/apc.ini" state=absent
+
+- name: install additional packages
+  action: apt pkg={{item}} state=latest
+  with_items:
+    #- php5-xcache
+    - php5-apcu
+    - php5-curl
+    - php5-gd
+    - php5-imagick
+    - php5-mcrypt
+    - php5-memcached
+    - php5-mysql
+    - php5-xdebug
+    - php-pear
+    - php5-intl
+    - php5-dev
+    - php5-sqlite
+    - mcrypt
+    - phpmyadmin
+
+- name: remove xcache package
+  action: apt pkg=php-5-xcache state=absent
+
+- name: cleanup old xcache config
+  action: file path="/etc/php5/fpm/conf.d/xcache.ini" state=absent
+
+# copy all files needed for php5 to according dirs
+- name: copy configs
+  action: copy src=../files{{item.path}} dest={{item.dest}} mode={{item.mode}}
+  with_items:
+    - { path: '/custom.php.ini', dest: '/etc/php5/fpm/conf.d/99-custom.php.ini', mode: 644 }
+    - { path: '/custom.xdebug.ini', dest: '/etc/php5/fpm/conf.d/99-custom.xdebug.ini', mode: 644 }
+    - { path: '/custom.php.ini', dest: '/etc/php5/cli/conf.d/99-custom.php.ini', mode: 644 }
+    - { path: '/custom.xdebug.ini', dest: '/etc/php5/cli/conf.d/99-custom.xdebug.ini', mode: 644 }
+    #- { path: '/xcache.ini', dest: '/etc/php5/fpm/conf.d/xcache.ini', mode: 644 }
+    - { path: '/apc.ini', dest: '/etc/php5/fpm/conf.d/99-custom.apc.ini', mode: 644 }
+    - { path: '/dev.vm1.sf2.conf', dest: '/etc/php5/fpm/pool.d/dev.vm1.sf2.conf', mode: 644 }
+    - { path: '/dev.vm2.sf2.conf', dest: '/etc/php5/fpm/pool.d/dev.vm2.sf2.conf', mode: 644 }
+    - { path: '/phpmyadmin.conf', dest: '/etc/apache2/conf-enabled/phpmyadmin.conf', mode: 644 }
+    - { path: '/config-db.php', dest: '/etc/phpmyadmin/config-db.php', mode: 644 }
+    - { path: '/create_tables.sql', dest: '/tmp/create_tables.sql', mode: 644 }
+
+- name: fix phpmyadmin directory permissions
+  action: file path={{item.path}} owner=wwwdev group=wwwdev recurse="yes"
+  with_items:
+    - { path: '/usr/share/phpmyadmin' }
+    - { path: '/var/lib/phpmyadmin' }
+    - { path: '/etc/phpmyadmin' }
+    #- { path: '/usr/share/xcache' }
+
+- name: restart mysql server
+  action: command service mysql restart
+
+- name: add new phpmyadmin table
+  action: mysql_db name=phpmyadmin state=present login_user=root login_password=vagrant
+
+- name: create mysql config tables
+  action: mysql_db name=phpmyadmin state=import target=/tmp/create_tables.sql login_user=root login_password=vagrant
+
+# remove php default config file for www pool
+- name: remove default config
+  action: file path=/etc/php5/fpm/pool.d/www.conf state=absent
+
+- name: create slowlog dir
+  action: file path=/var/log/php-fpm/ state=directory
+
+- name: stop php-fpm server
+  service: name=php5-fpm state=stopped enabled=true
+
+- name: start php-fpm server
+  service: name=php5-fpm state=started enabled=true
+
+- name: restart apache2
+  command: /etc/init.d/apache2 restart

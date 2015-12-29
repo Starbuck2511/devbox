@@ -1,0 +1,39 @@
+- name: install/update packages
+  action: apt pkg={{item}} state=latest
+  with_items:
+    - mongodb
+    - mongodb-server
+    - mongodb-clients
+    - php5-mongo
+
+- name: download rockmongo
+  get_url: url=http://github.com/iwind/rockmongo/archive/1.1.7.zip dest=/tmp/rockmongo.zip
+
+- name: make sure we've got no previous installations
+  action: file path=/etc/rockmongo/rockmongo-1.1.7 state=absent owner={{user}} group={{user}}
+
+- name: fix permissions
+  action: file path=/etc/rockmongo state=directory owner={{user}} group={{user}}
+
+- name: unzip archive
+  unarchive: src=/tmp/rockmongo.zip dest=/etc/rockmongo copy=no
+
+- name: create rockmongo config
+  template: src=./rockmongo.config.php.j2 dest=/etc/rockmongo/rockmongo-1.1.7/config.php owner={{user}} group={{user}} mode=644
+
+- name: make sure all permissions are set
+  action: file path=/etc/rockmongo owner={{user}} group={{user}} recurse=true
+
+- name: copy configs
+  action: copy src=../files{{item.path}} dest={{item.dest}} mode={{item.mode}}
+  with_items:
+    - { path: '/rockmongo.conf', dest: '/etc/apache2/sites-enabled/rockmongo.conf', mode: 644 }
+
+- name: restart apache2
+  command: /etc/init.d/apache2 restart
+
+- name: start apache2 server
+  service: name=apache2 state=started enabled=true
+
+- name: start php-fpm
+  service: name=php5-fpm state=started enabled=true
