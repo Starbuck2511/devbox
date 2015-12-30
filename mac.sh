@@ -12,4 +12,4 @@ sudo apt-get -y install ansible
 sudo chmod -x /vagrant/ansible/development
 # export ANSIBLE_NOCOWS=1
 # do it this way on an old mac os x
-sudo ansible-playbook /vagrant/ansible/development.yml -i /vagrant/ansible/development_macwindows.sh --connection=local
+sudo ansible-playbook /vagrant/ansible/development.yml -i /vagrant/ansible/development_mac --connection=local
